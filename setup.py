@@ -23,7 +23,7 @@ setup(
     author='Ekin Ugurel',
     author_email='ugurel@uw.com',
     license=license,
-    #packages=find_packages(include=["forest*"]),
+    packages=find_packages(),
     #package_data=package_data,
     install_requires=requires
 )
