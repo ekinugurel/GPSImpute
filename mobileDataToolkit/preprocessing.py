@@ -5,8 +5,7 @@ import numpy as np
 import holidays
 import matplotlib
 from matplotlib import pyplot as plt, cm
-
-
+import math
 
 us_holidays = holidays.US()
 
@@ -166,9 +165,7 @@ class dp_MultiTrip():
         self.data[month_ind] = months
                 
         self.data = self.data.reset_index()
-        
-        self.tempOcp(test = 1)
-        
+                
         return self.data
     
     def mobVisualize(self, data):
