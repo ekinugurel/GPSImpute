@@ -35,9 +35,24 @@ def haversine(lat1, long1, lat2, long2):
     dlat = lat2 - lat1 
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlong/2)**2
     c = 2 * asin(sqrt(a)) 
-    # Radius of earth in kilometers is 6371
-    m = 6371 * c * 1000
+    R = 6371  # radius of the earth in km
+    m = R * c * 1000
     return m
+
+def geodesic(lat1, lon1, lat2, lon2):
+    """
+    geodesic distance; in kilometers
+    """"
+    
+    lat1 = radians(float(lat1))
+    lon1 = radians(float(lon1))
+    lat2 = radians(float(lat2))
+    lon2 = radians(float(lon2))
+    R = 6371  # radius of the earth in km
+    x = (lon2 - lon1) * cos( 0.5*(lat2+lat1) )
+    y = lat2 - lat1
+    d = R * sqrt( x*x + y*y )
+    return d
 
 def newCoords(lat, lon, dy, dx):
     """
