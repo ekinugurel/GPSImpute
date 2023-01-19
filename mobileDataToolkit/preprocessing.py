@@ -6,6 +6,8 @@ import holidays
 import matplotlib
 from matplotlib import pyplot as plt, cm
 import math
+import torch
+import utils.helper_func as helper_func
 
 us_holidays = holidays.US()
 
@@ -94,6 +96,13 @@ class dp_MultiTrip():
     
     def Multi_Trip_Preprocess(self):
         self.data = self.data[self.data.user_ID == self.user_ID]
+        
+        # TO-DO: implement functions for estimating distance, velocity, and bearing (b/w observations) 
+        #dist = list()
+        #dist_count = 1
+        #for i, j in zip(self.data['orig_lat'], self.data['orig_long']):
+        #    dist.append(helper_func.haversine(i, j, self.data['orig_lat'][dist_count], self.data['orig_long'][dist_count]))
+        #    dist_count += 1
 
         self.data['Day of Week'] = self.data['Date_Time'].dt.dayofweek
         self.data['Year'] = self.data['Date_Time'].dt.year
@@ -162,7 +171,7 @@ class dp_MultiTrip():
         for i in self.months_col:
             month_ind.append("month_" + str(i))
             
-        self.data[month_ind] = months
+        self.data[month_ind] = months        
                 
         self.data = self.data.reset_index()
                 
