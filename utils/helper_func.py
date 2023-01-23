@@ -42,7 +42,7 @@ def haversine(lat1, long1, lat2, long2):
 def geodesic(lat1, lon1, lat2, lon2):
     """
     geodesic distance; in kilometers
-    """"
+    """
     
     lat1 = radians(float(lat1))
     lon1 = radians(float(lon1))
