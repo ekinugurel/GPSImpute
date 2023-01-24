@@ -313,3 +313,17 @@ class dp_MultiTrip():
         #else:
         #    self.MO_train = torch.stack([self.dist_train, self.angle_train], -1)
         #    self.MO_test = torch.stack([self.dist_test, self.angle_test], -1)
+        
+        self.train = pd.DataFrame({'unix_start_t_min': self.glob_t_train,
+                                   'date': self.date_train,
+                                   'lat': [self.y_train_lat[i].item() for i in range(0, len(self.y_train_lat))],
+                                   'long': [self.y_train_long[i].item() for i in range(0, len(self.y_train_long))]},
+                                  columns = ['unix_start_t_min', 'date', 'lat', 'long'])
+        self.train = self.train.sort_values(by=['unix_start_t_min'])
+        
+        self.test = pd.DataFrame({'unix_start_t_min': self.glob_t_test,
+                           'date': self.date_test,
+                           'lat': [self.y_test_lat[i].item() for i in range(0, len(self.y_test_lat))],
+                           'long': [self.y_test_long[i].item() for i in range(0, len(self.y_test_long))]},
+                          columns = ['unix_start_t_min', 'date', 'lat', 'long'])
+        self.test = self.test.sort_values(by=['unix_start_t_min'])
