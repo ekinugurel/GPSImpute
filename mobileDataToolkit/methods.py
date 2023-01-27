@@ -174,4 +174,4 @@ def Multi_Trip_TrainTestSplit(test_start_date, test_end_date, output = 'coords')
                       columns = ['unix_start_t_min', 'date', 'lat', 'long'])
     test = test.sort_values(by=['unix_start_t_min'])
     
-    return train, test
+    return train, test, X_train, y_train, X_test, y_test

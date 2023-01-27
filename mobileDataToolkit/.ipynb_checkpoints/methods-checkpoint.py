@@ -78,3 +78,100 @@ def LI(X_train, X_test, y_train, y_test):
     rmse_long = mean_squared_error(preds_long, y_test[:,1], squared=False)
     rmse = math.sqrt(rmse_lat**2 + rmse_long**2)
     return rmse
+
+def Multi_Trip_TrainTestSplit(test_start_date, test_end_date, output = 'coords'):    
+
+    # IMPORTANT: these lines find the index at which the temporal input dimensions are located within the full dataframe
+    inputstart = "unix_start_t_min"
+    inputend = "week_" + str(weeks_col[-1])
+
+    time_start_loc = data.columns.get_loc(inputstart)
+    time_end_loc = data.columns.get_loc(inputend) + 1
+
+    test_start_date = test_start_date
+    test_end_date = test_end_date
+
+    X_train = torch.tensor(np.asarray(data.iloc[:, time_start_loc:time_end_loc][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+    X_test = torch.tensor(np.asarray(data.iloc[:, time_start_loc:time_end_loc][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+        ]).astype(np.float))
+    y_train_lat = torch.tensor(np.asarray(data['orig_lat'][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+    y_test_lat = torch.tensor(np.asarray(data['orig_lat'][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+        ]).astype(np.float))
+    y_train_long = torch.tensor(np.asarray(data['orig_long'][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+    y_test_long = torch.tensor(np.asarray(data['orig_long'][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+        ]).astype(np.float))
+    glob_t_train = torch.tensor(np.asarray(data['unix_start_t_min'][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+    glob_t_test = torch.tensor(np.asarray(data['unix_start_t_min'][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+        ]).astype(np.float))
+    date_train = data['Date_Time'][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]
+    date_test = data['Date_Time'][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+        ]
+    #vel_train = torch.tensor(np.asarray(data['vel'][
+    #    (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+    #    ]).astype(np.float))
+    #vel_test = torch.tensor(np.asarray(data['vel'][
+    #    (data['Date_Time'] >= test_start_date) & (data['Date_Time'] > test_end_date)
+    #    ]).astype(np.float))
+    #angle_train = torch.tensor(np.asarray(data['angle'][
+    #    (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+    #    ]).astype(np.float))
+    #angle_test = torch.tensor(np.asarray(data['angle'][
+    #    (data['Date_Time'] >= test_start_date) & (data['Date_Time'] > test_end_date)
+    #    ]).astype(np.float))
+    prec_train = torch.tensor(np.asarray(data['orig_unc'][
+        (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+    prec_test = torch.tensor(np.asarray(data['orig_unc'][
+        (data['Date_Time'] >= test_start_date) & (data['Date_Time'] > test_end_date)
+        ]).astype(np.float))
+
+    if output == 'coords':
+        y_train = torch.stack(
+            [
+                y_train_lat, y_train_long 
+                ], -1)
+        y_test = torch.stack(
+            [
+                y_test_lat, y_test_long
+                ], -1)
+    elif output == 'home':
+        y_train = torch.tensor(np.asarray(data['home'][
+            (data['Date_Time'] < test_start_date) | (data['Date_Time'] > test_end_date)
+            ]).astype(np.float))
+        y_test = torch.tensor(np.asarray(data['home'][
+            (data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)
+            ]).astype(np.float))
+    #else:
+    #    MO_train = torch.stack([dist_train, angle_train], -1)
+    #    MO_test = torch.stack([dist_test, angle_test], -1)
+
+    train = pd.DataFrame({'unix_start_t_min': glob_t_train,
+                               'date': date_train,
+                               'lat': [y_train_lat[i].item() for i in range(0, len(y_train_lat))],
+                               'long': [y_train_long[i].item() for i in range(0, len(y_train_long))]},
+                              columns = ['unix_start_t_min', 'date', 'lat', 'long'])
+    train = train.sort_values(by=['unix_start_t_min'])
+
+    test = pd.DataFrame({'unix_start_t_min': glob_t_test,
+                       'date': date_test,
+                       'lat': [y_test_lat[i].item() for i in range(0, len(y_test_lat))],
+                       'long': [y_test_long[i].item() for i in range(0, len(y_test_long))]},
+                      columns = ['unix_start_t_min', 'date', 'lat', 'long'])
+    test = test.sort_values(by=['unix_start_t_min'])
+    
+    return train, test, X_train, y_train, X_test, y_test
