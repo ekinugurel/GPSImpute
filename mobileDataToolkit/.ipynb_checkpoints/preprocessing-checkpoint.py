@@ -211,10 +211,10 @@ class dp_MultiTrip():
         self.home_lat = self.data[(self.data['Hour'] <= 6) | (self.data['Hour'] >= 22)]['orig_lat'].mode().item()
         self.home_long = self.data[(self.data['Hour'] <= 6) | (self.data['Hour'] >= 22)]['orig_long'].mode().item()
         
-        upper_b_lat, upper_b_long = find_new_coords(self.home_lat, self.home_long, m_threshold, 0)
-        right_b_lat, right_b_long = find_new_coords(self.home_lat, self.home_long, 0, m_threshold)
-        lower_b_lat, lower_b_long = find_new_coords(self.home_lat, self.home_long, -m_threshold, 0)
-        left_b_lat, left_b_long = find_new_coords(self.home_lat, self.home_long, 0, -m_threshold)
+        upper_b_lat, upper_b_long = helper_func.newCoords(self.home_lat, self.home_long, m_threshold, 0)
+        right_b_lat, right_b_long = helper_func.newCoords(self.home_lat, self.home_long, 0, m_threshold)
+        lower_b_lat, lower_b_long = helper_func.newCoords(self.home_lat, self.home_long, -m_threshold, 0)
+        left_b_lat, left_b_long = helper_func.newCoords(self.home_lat, self.home_long, 0, -m_threshold)
         
         home = []
         

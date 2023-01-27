@@ -26,7 +26,7 @@ def plot_2d_func(func, n_rows=1, n_cols=1, title=None):
 def haversine(lat1, long1, lat2, long2):
     """
     Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
+    on the earth (specified in decimal degrees); in meters
     """
     # convert decimal degrees to radians 
     lat1, long1, lat2, long2 = map(radians, [lat1, long1, lat2, long2])
@@ -41,7 +41,7 @@ def haversine(lat1, long1, lat2, long2):
 
 def geodesic(lat1, lon1, lat2, lon2):
     """
-    geodesic distance; in kilometers
+    geodesic distance; in meters
     """
     
     lat1 = radians(float(lat1))
@@ -51,7 +51,7 @@ def geodesic(lat1, lon1, lat2, lon2):
     R = 6371  # radius of the earth in km
     x = (lon2 - lon1) * cos( 0.5*(lat2+lat1) )
     y = lat2 - lat1
-    d = R * sqrt( x*x + y*y )
+    d = R * sqrt( x*x + y*y ) * 1000
     return d
 
 def newCoords(lat, lon, dy, dx):
@@ -80,6 +80,40 @@ def newCoordsAlt(lat1, lon1, d, brng, R = 6378.1):
     lat2 = math.degrees(lat2)
     lon2 = math.degrees(lon2)
     return lat2, lon2
+
+def addDist(data, type=haversine):
+    """
+    Add distance column to a dataframe with latitudes and longitudes. type specifies whether to use the Haversine distance (default) or the geodesic distance.
+    """
+    if type == haversine:
+        cnt = 1
+        dist = list()
+        for i, j in zip(data['orig_lat'], data['orig_long']):
+            dist.append(haversine(i, j, data['orig_lat'][cnt], data['orig_long'][cnt]))
+            cnt += 1
+            if cnt == len(data):
+                dist.insert(0, 0)
+                break
+        data['dist'] = dist
+    elif type == geodesic:
+        cnt = 1
+        dist = list()
+        for i, j in zip(data['orig_lat'], data['orig_long']):
+            dist.append(geodesic(i, j, data['orig_lat'][cnt], data['orig_long'][cnt]))
+            cnt += 1
+            if cnt == len(data):
+                dist.insert(0, 0)
+                break
+        data['dist'] = dist
+        
+def addVel(data):
+    dt = list(np.diff(data['unix_start_t']))
+    dt.insert(0, 0)
+    if 'dist' in list(data.columns):
+        data['vel'] = data['dist'] / dt
+        data['vel'][0] = 0
+    else:
+        print("Please run addDist method to calculate distances between points first.")
 
 def burstiness(series):
     avg=series.mean()
