@@ -22,9 +22,11 @@ def mobVisualize(data):
     y2_ax.set_title('(Normalized) Longitude', fontsize = 10)
 
     try:
-        y1_ax.fill_between(data['Date_Time'], 0, 1, where=((data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)), 
+        y1_ax.fill_between(data['Date_Time'], 0, 1, 
+                           where=((data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date)), 
                            color='pink', alpha=0.5, label = 'Testing period', transform=y1_ax.get_xaxis_transform())
-        y2_ax.fill_between(data['Date_Time'], 0, 1, where=(data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date), 
+        y2_ax.fill_between(data['Date_Time'], 0, 1, 
+                           where=(data['Date_Time'] >= test_start_date) & (data['Date_Time'] <= test_end_date), 
                            color='pink', alpha=0.5, label = 'Testing period', transform=y2_ax.get_xaxis_transform())
     except AttributeError:
         pass

@@ -96,13 +96,6 @@ class dp_MultiTrip():
     
     def Multi_Trip_Preprocess(self):
         self.data = self.data[self.data.user_ID == self.user_ID]
-        
-        # TO-DO: implement functions for estimating distance, velocity, and bearing (b/w observations) 
-        #dist = list()
-        #dist_count = 1
-        #for i, j in zip(self.data['orig_lat'], self.data['orig_long']):
-        #    dist.append(helper_func.haversine(i, j, self.data['orig_lat'][dist_count], self.data['orig_long'][dist_count]))
-        #    dist_count += 1
 
         self.data['Day of Week'] = self.data['Date_Time'].dt.dayofweek
         self.data['Year'] = self.data['Date_Time'].dt.year
@@ -125,7 +118,7 @@ class dp_MultiTrip():
         self.data['norm_long'] = [np.array(((i - mean_long) / stdev_long), dtype=np.float32) for i in self.data['orig_long']]
         
         self.data['unix_start_t_min'] = ( (self.data['unix_start_t'] - min(self.data['unix_start_t'])) / 60 ).astype(int) #
-        self.data['sec_after_midnight'] = self.data['Date_Time'].dt.hour * 3600 + self.data['Date_Time'].dt.minute * 60 + self.data['Date_Time'].dt.second
+        self.data['sec_after_midnight'] = (self.data['Date_Time'].dt.hour*3600)+(self.data['Date_Time'].dt.minute*60)+(self.data['Date_Time'].dt.second)
         #self.data['minute'] = self.data['Date_Time'].dt.hour * 60 + self.data['Date_Time'].dt.minute
         #self.data['15_mins'] = math.ceil(self.data['minute'] / 15)
         
@@ -147,7 +140,7 @@ class dp_MultiTrip():
         PM_peak = list()
         for i in self.data['Date_Time']:
             PM_peak.append(1 if ((i.hour >= 15) & (i.hour < 19)) else 0)
-        self.data['AM_peak'] = PM_peak
+        self.data['PM_peak'] = PM_peak
         
         days = pd.get_dummies(self.data['Day of Week']).to_numpy()
         self.days_col = pd.get_dummies(self.data['Day of Week']).columns
@@ -174,8 +167,6 @@ class dp_MultiTrip():
         self.data[month_ind] = months        
                 
         self.data = self.data.reset_index()
-                
-        return self.data
     
     def mobVisualize(self, data):
         matplotlib.rcParams.update(matplotlib.rcParamsDefault)
@@ -191,8 +182,12 @@ class dp_MultiTrip():
         y2_ax.set_title('(Normalized) Longitude', fontsize = 10)
         
         try:
-            y1_ax.fill_between(data['Date_Time'], 0, 1, where=((data['Date_Time'] >= self.test_start_date) & (data['Date_Time'] <= self.test_end_date)), color='pink', alpha=0.5, label = 'Testing period', transform=y1_ax.get_xaxis_transform())
-            y2_ax.fill_between(data['Date_Time'], 0, 1, where=(data['Date_Time'] >= self.test_start_date) & (data['Date_Time'] <= self.test_end_date), color='pink', alpha=0.5, label = 'Testing period', transform=y2_ax.get_xaxis_transform())
+            y1_ax.fill_between(data['Date_Time'], 0, 1, 
+                               where=((data['Date_Time'] >= self.test_start_date) & (data['Date_Time'] <= self.test_end_date)), 
+                               color='pink', alpha=0.5, label = 'Testing period', transform=y1_ax.get_xaxis_transform())
+            y2_ax.fill_between(data['Date_Time'], 0, 1, 
+                               where=(data['Date_Time'] >= self.test_start_date) & (data['Date_Time'] <= self.test_end_date), 
+                               color='pink', alpha=0.5, label = 'Testing period', transform=y2_ax.get_xaxis_transform())
         except AttributeError:
             pass
         #y1_ax.set_ylim([min(self.data['orig_lat']), max(self.data['orig_lat'])])
