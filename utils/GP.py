@@ -6,6 +6,7 @@ from gpytorch.kernels import MultitaskKernel, ScaleKernel, Kernel
 from typing import Optional
 from gpytorch.constraints import Interval, Positive
 from gpytorch.priors import Prior
+import tqdm
 
 class MTGPRegressor(gpytorch.models.ExactGP):
     def __init__(self, X, y, kernel, mean=ConstantMean(), likelihood=None):
@@ -85,3 +86,77 @@ class DiffusionKernel(Kernel):
         for i in range(x1.shape[-1]): 
             res *= ((1 - torch.exp(-self.lengthscale[..., i] * self.cats[i]))/(1 + (self.cats[i] - 1) * torch.exp(-self.lengthscale[..., i]*self.cats[i]))).unsqueeze(-1) ** ((x1[..., i].unsqueeze(-2)[..., None] != x2[..., i].unsqueeze(-2))[0, ...])
         return res             
+    
+    
+# Find optimal model hyperparameters
+def training(model, X_train, y_train, n_epochs=200, lr=0.3, loss_threshold=0.00001, fix_noise_variance=None, verbose=True):
+    model.train()
+    model.likelihood.train()
+    
+    try:
+        n_comp = len([m for m in model.covar_module.data_covar_module.kernels])
+        for i in range(n_comp):
+            model.covar_module.data_covar_module.kernels[i].outputscale = (1 / n_comp)
+    except AttributeError:
+        n_comp = 1
+
+    # Use the adam optimizer
+    if fix_noise_variance is not None:
+        model.likelihood.noise = fix_noise_variance
+        training_parameters = [p for name, p in model.named_parameters()
+                               if not name.startswith('likelihood')]
+    else:
+        training_parameters = model.parameters()
+        
+    optimizer = torch.optim.Adam(training_parameters, lr=lr)
+
+    # "Loss" for GPs - the marginal log likelihood
+    mll = gpytorch.mlls.ExactMarginalLogLikelihood(model.likelihood, model)
+    
+    counter = 0
+    ls = list()
+    with tqdm.trange(n_epochs, disable=not verbose) as bar:
+        for i in bar:
+    
+            optimizer.zero_grad()
+            
+            output = model(X_train)
+            loss = -mll(output, y_train)
+            if hasattr(model.covar_module.data_covar_module, 'kernels'):
+                with torch.no_grad():
+                    for j in range(n_comp):
+                        model.covar_module.data_covar_module.kernels[j].outputscale =  \
+                        model.covar_module.data_covar_module.kernels[j].outputscale /  \
+                        sum([model.covar_module.data_covar_module.kernels[i].outputscale for i in range(n_comp)])
+            else:
+                pass
+            loss.backward()
+            ls.append(loss.item())
+            optimizer.step()
+            if (i > 0):
+                if abs(ls[counter - 1] - ls[i]) < loss_threshold:
+                    break
+            counter = counter + 1
+                        
+            # display progress bar
+            postfix = dict(Loss=f"{loss.item():.3f}",
+                           noise=f"{model.likelihood.noise.item():.3}")
+            
+            if (hasattr(model.covar_module, 'base_kernel') and
+                hasattr(model.covar_module.base_kernel, 'lengthscale')):
+                lengthscale = model.covar_module.base_kernel.lengthscale
+                if lengthscale is not None:
+                    lengthscale = lengthscale.squeeze(0).detach().cpu().numpy()
+            else:
+                lengthscale = model.covar_module.lengthscale
+
+            if lengthscale is not None:
+                if len(lengthscale) > 1:
+                    lengthscale_repr = [f"{l:.3f}" for l in lengthscale]
+                    postfix['lengthscale'] = f"{lengthscale_repr}"
+                else:
+                    postfix['lengthscale'] = f"{lengthscale[0]:.3f}"
+                
+            bar.set_postfix(postfix)
+            
+    return ls, mll

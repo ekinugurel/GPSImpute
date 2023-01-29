@@ -4,6 +4,8 @@ from sklearn.metrics import mean_squared_error
 import matplotlib
 from matplotlib import pyplot as plt, cm
 import utils.helper_func as helper_func
+import pandas as pd
+import torch
 
 
 def mobVisualize(data):
@@ -81,9 +83,12 @@ def LI(X_train, X_test, y_train, y_test):
     rmse = math.sqrt(rmse_lat**2 + rmse_long**2)
     return rmse
 
-def Multi_Trip_TrainTestSplit(test_start_date, test_end_date, output = 'coords'):    
+def Multi_Trip_TrainTestSplit(data, test_start_date, test_end_date, output = 'coords'):    
 
     # IMPORTANT: these lines find the index at which the temporal input dimensions are located within the full dataframe
+    weeks_col = pd.get_dummies(data['Week_of_Month']).columns
+    data = data.rename(columns={'datetime': 'Date_Time', 'lat': 'orig_lat', 'lng': 'orig_long' })
+
     inputstart = "unix_start_t_min"
     inputend = "week_" + str(weeks_col[-1])
 
@@ -176,4 +181,4 @@ def Multi_Trip_TrainTestSplit(test_start_date, test_end_date, output = 'coords')
                       columns = ['unix_start_t_min', 'date', 'lat', 'long'])
     test = test.sort_values(by=['unix_start_t_min'])
     
-    return train, test, X_train, y_train, X_test, y_test
+    return train, test, X_train, y_train, X_test, y_test, date_train, date_test
