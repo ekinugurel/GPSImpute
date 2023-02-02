@@ -27,12 +27,12 @@ def total_absolute_percentage_error(y_true, y_pred):
     return np.sum(absolute_percentage_error(y_true, y_pred))
 
 
-def evaluate(y_true, y_pred, ts):
+def evaluate(y_true, y_pred):
     return {
         'MAE': mean_absolute_error(y_true, y_pred),
         'RMSE': np.sqrt(mean_squared_error(y_true, y_pred)),
         'MAD': median_absolute_error(y_true, y_pred),
-        'R2': r2_score(y_true, y_pred, ts),
+        #'R2': r2_score(y_true, y_pred, ts),
         'MAPE': mean_absolute_percentage_error(y_true, y_pred),
         'MAXAPE': max_absolute_percentage_error(y_true, y_pred),
         'TAPE': total_absolute_percentage_error(y_true, y_pred)
