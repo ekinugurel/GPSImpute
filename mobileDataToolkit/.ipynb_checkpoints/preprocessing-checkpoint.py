@@ -12,11 +12,14 @@ import utils.helper_func as helper_func
 us_holidays = holidays.US()
 
 class dp_MultiTrip():
-    def __init__(self, file_path, random_state):
+    def __init__(self, data=None, file_path=None, random_state=None):
         self.file_path = file_path
         self.random_state = random_state
         
-        self.read_data()
+        if file_path is not None:
+            self.read_data()
+        elif data is not None:
+            self.data = data
 
     def read_data(self):
         self.data = pd.read_csv(self.file_path)
@@ -31,7 +34,10 @@ class dp_MultiTrip():
     
     def chooseUser(self, user_ID):
         self.user_ID = user_ID
-        self.data = self.data[self.data.user_ID == self.user_ID]
+        if self.data.user_ID in self.data.columns:
+            self.data = self.data[self.data.user_ID == self.user_ID]
+        elif self.data.UID in self.data.columns:
+            self.data = self.data[self.data.UID == self.user_ID]
         
     def sample(self, npoints, random_state):
         self.samples = self.data.sample(n = npoints, random_state = random_state)
