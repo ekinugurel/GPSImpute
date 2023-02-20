@@ -1,3 +1,8 @@
+## Installation
+$ git clone https://github.com/ekinugurel/mobileDataToolKit.git
+$ cd ./mobileDataToolKit
+$ pip install -e .
+
 ## About
 
 ## Usage
