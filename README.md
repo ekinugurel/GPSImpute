@@ -1,7 +1,7 @@
 ## Installation
 ```
-$ git clone https://github.com/ekinugurel/mobileDataToolKit.git
-$ cd ./mobileDataToolKit
+$ git clone https://github.com/ekinugurel/GPSImpute.git
+$ cd ./GPSImpute
 $ pip install -e .
 ```
 
