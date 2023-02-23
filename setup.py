@@ -16,7 +16,7 @@ with open('LICENSE.md') as f:
     license = f.read()
 
 setup(
-    name='MobileDataToolkit',
+    name='GPSImpute',
     version='0.0.0',
     description='--add description here--',
     long_description=readme,
