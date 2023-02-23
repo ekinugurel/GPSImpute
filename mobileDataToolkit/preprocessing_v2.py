@@ -34,10 +34,7 @@ class dp_MultiTrip():
     
     def chooseUser(self, UID):
         self.UID = UID
-        if self.data.UID in self.data.columns:
-            self.data = self.data[self.data.UID == self.UID]
-        elif self.data.UID in self.data.columns:
-            self.data = self.data[self.data.UID == self.UID]
+        self.data = self.data[self.data.UID == self.UID]
         
     def sample(self, npoints, random_state):
         self.samples = self.data.sample(n = npoints, random_state = random_state)
