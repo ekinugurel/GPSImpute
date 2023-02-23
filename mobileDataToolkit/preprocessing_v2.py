@@ -31,6 +31,16 @@ class dp_MultiTrip():
             datetime.append(datetime.utcfromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S'))
         self.data['datetime'] = datetime
         self.data['datetime'] = pd.to_datetime(self.data['datetime'])
+
+    def add_NormCoords(self):    
+        mean_lat = self.data['orig_lat'].mean()
+        mean_long = self.data['orig_long'].mean()
+        stdev_lat = self.data['orig_lat'].std()
+        stdev_long = self.data['orig_long'].std()
+            
+        self.data['norm_lat'] = [np.array(((i - mean_lat) / stdev_lat), dtype=np.float32) for i in self.data['orig_lat']]
+        self.data['norm_long'] = [np.array(((i - mean_long) / stdev_long), dtype=np.float32) for i in self.data['orig_long']]
+        
     
     def chooseUser(self, UID):
         self.UID = UID

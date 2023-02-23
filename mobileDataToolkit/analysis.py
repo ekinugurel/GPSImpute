@@ -18,7 +18,7 @@ def tempOcp(data, bin_len = 5):
     Temporal occupancy metric.
 
     """
-    bins = np.arange(min(data['unix_start_t_min']), max(data['unix_start_t_min'])+1, bin_len )
+    bins = np.arange(min(data['unix_min']), max(data['unix_min'])+1, bin_len )
     Nb = len(bins)
     obs = list()
     for i, j in enumerate(bins):
@@ -26,7 +26,7 @@ def tempOcp(data, bin_len = 5):
             break
         hi = list()
         for k in range(int(bins[i]), int(bins[i+1])):
-            condition = [k in data['unix_start_t_min'].values]
+            condition = [k in data['unix_min'].values]
             hi.append(any(condition))
         if any(hi):
             obs.append(1)
@@ -36,15 +36,18 @@ def tempOcp(data, bin_len = 5):
     temp_ocp = float(len(obs) / len(bins))
     return temp_ocp
 
-def simulate_gaps(data, user_id, target_temp_ocp, bin_len=5):
-    user_data = data[data['user_id'] == user_id]
+def simulate_gaps(data, target_temp_ocp, user_id=None, bin_len=5):
+    if user_id is not None:
+        user_data = data[data['user_id'] == user_id]
+    else:
+        user_data = data
     current_temp_ocp = tempOcp(user_data, bin_len)
     if current_temp_ocp <= target_temp_ocp:
         print(f"User {user_id} already has temporal occupancy of {current_temp_ocp}.")
         return None
     else:
         target_bins = int(len(user_data) * target_temp_ocp)
-        current_bins = len(np.unique(user_data['unix_start_t_min'])) - 1
+        current_bins = len(np.unique(user_data['unix_min'])) - 1
         if target_bins >= current_bins:
             print(f"Cannot decrease temporal occupancy for user {user_id} to {target_temp_ocp}.")
             return None
@@ -53,8 +56,8 @@ def simulate_gaps(data, user_id, target_temp_ocp, bin_len=5):
             gap_starts = np.arange(gap_size, current_bins, gap_size+1)
             gap_ends = gap_starts + int(gap_size/2)
             for start, end in zip(gap_starts, gap_ends):
-                start_time = user_data.iloc[start]['unix_start_t_min']
-                end_time = user_data.iloc[end]['unix_start_t_min']
-                user_data = user_data[user_data['unix_start_t_min'] < start_time]\
-                            .append(user_data[user_data['unix_start_t_min'] > end_time])
+                start_time = user_data.iloc[start]['unix_min']
+                end_time = user_data.iloc[end]['unix_min']
+                user_data = user_data[user_data['unix_min'] < start_time]\
+                            .append(user_data[user_data['unix_min'] > end_time])
             return user_data.reset_index(drop=True)

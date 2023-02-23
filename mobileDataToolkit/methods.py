@@ -7,20 +7,25 @@ import utils.helper_func as helper_func
 import pandas as pd
 import torch
 
-
 def mobVisualize(data):
     matplotlib.rcParams.update(matplotlib.rcParamsDefault)
     f, (y1_ax, y2_ax) = plt.subplots(2, 1, constrained_layout = True)
-    if len(data.user_ID.unique()) == 1:
-        f.suptitle('User ID: ' + str(data.user_ID.unique().item()), fontsize = 10)
+    if 'user_ID' in list(data.columns):
+        if len(data.user_ID.unique()) == 1:
+            f.suptitle('User ID: ' + str(data.user_ID.unique().item()), fontsize = 10)
+    elif 'UID' in list(data.columns):
+        if len(data.UID.unique()) == 1:
+            f.suptitle('User ID: ' + str(data.UID.unique().item()), fontsize = 10)
     if 'datetime' in list(data.columns):
         data = data.rename(columns={'datetime': 'Date_Time'})
 
-    y1_ax.scatter(data['Date_Time'], data['norm_lat'], marker='.', c='blue')
+    times = [date_obj.strftime('%H:%M:%S') for date_obj in pd.to_datetime(data.Date_Time).dt.time]
+
+    y1_ax.scatter(times, data['norm_lat'], marker='.', c='blue')
     y1_ax.set_title('(Normalized) Latitude', fontsize = 10)
     y1_ax.set_xticks([])
 
-    y2_ax.scatter(data['Date_Time'], data['norm_long'], marker='.', c='blue')
+    y2_ax.scatter(times, data['norm_long'], marker='.', c='blue')
     y2_ax.set_title('(Normalized) Longitude', fontsize = 10)
 
     try:
