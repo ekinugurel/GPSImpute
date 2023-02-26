@@ -7,7 +7,24 @@ import utils.helper_func as helper_func
 import pandas as pd
 import torch
 
-def mobVisualize(data):
+def mobVisualize(data, axes=None, **kwargs):
+    """
+    Visualizes the trajectory of a mobile device.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Trajectory data that needs to be visualized.
+    axes : matplotlib.axes._subplots.AxesSubplot, optional
+        Axes to plot on. The default is None.
+    **kwargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
     matplotlib.rcParams.update(matplotlib.rcParamsDefault)
     f, (y1_ax, y2_ax) = plt.subplots(2, 1, constrained_layout = True)
     if 'user_ID' in list(data.columns):
@@ -21,12 +38,12 @@ def mobVisualize(data):
 
     times = [date_obj.strftime('%H:%M:%S') for date_obj in pd.to_datetime(data.Date_Time).dt.time]
 
-    y1_ax.scatter(times, data['norm_lat'], marker='.', c='blue')
-    y1_ax.set_title('(Normalized) Latitude', fontsize = 10)
+    y1_ax.scatter(times, data['norm_lat'], marker='.', c='blue', **kwargs)
+    y1_ax.set_title('(Normalized) Latitude', fontsize = 10, **kwargs)
     y1_ax.set_xticks([])
 
-    y2_ax.scatter(times, data['norm_long'], marker='.', c='blue')
-    y2_ax.set_title('(Normalized) Longitude', fontsize = 10)
+    y2_ax.scatter(times, data['norm_long'], marker='.', c='blue', **kwargs)
+    y2_ax.set_title('(Normalized) Longitude', fontsize = 10, **kwargs)
 
     try:
         y1_ax.fill_between(data['Date_Time'], 0, 1, 
