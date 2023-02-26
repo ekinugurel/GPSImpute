@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 def tempOcp(data, bin_len = 5):
     """
@@ -37,27 +38,24 @@ def tempOcp(data, bin_len = 5):
     return temp_ocp
 
 def simulate_gaps(data, target_temp_ocp, user_id=None, bin_len=5):
-    if user_id is not None:
-        user_data = data[data['user_id'] == user_id]
-    else:
-        user_data = data
-    current_temp_ocp = tempOcp(user_data, bin_len)
-    if current_temp_ocp <= target_temp_ocp:
-        print(f"User {user_id} already has temporal occupancy of {current_temp_ocp}.")
-        return None
-    else:
-        target_bins = int(len(user_data) * target_temp_ocp)
-        current_bins = len(np.unique(user_data['unix_min'])) - 1
-        if target_bins >= current_bins:
-            print(f"Cannot decrease temporal occupancy for user {user_id} to {target_temp_ocp}.")
-            return None
-        else:
-            gap_size = int((current_bins - target_bins) / (target_bins + 1))
-            gap_starts = np.arange(gap_size, current_bins, gap_size+1)
-            gap_ends = gap_starts + int(gap_size/2)
-            for start, end in zip(gap_starts, gap_ends):
-                start_time = user_data.iloc[start]['unix_min']
-                end_time = user_data.iloc[end]['unix_min']
-                user_data = user_data[user_data['unix_min'] < start_time]\
-                            .append(user_data[user_data['unix_min'] > end_time])
-            return user_data.reset_index(drop=True)
+    bins = np.arange(min(data['unix_min']), max(data['unix_min'])+1, bin_len )
+
+    # Dictionary comprehension to map values to bins
+    bins_dict = {b: [x for x in data.unix_min if b <= x < b+bin_len] for b in bins}
+
+    # New dictionary with non-empty bins
+    non_empty_bins_dict = {k: v for k, v in bins_dict.items() if len(v) > 0}
+
+    # Remove bins until the temporal occupancy is below the target
+    sparse_data = data.copy()
+
+    while tempOcp(sparse_data, bin_len) > target_temp_ocp:
+        # Randomly choose a bin to remove
+        bin_to_remove = np.random.choice(list(non_empty_bins_dict.keys()))
+        # Remove all values in this bin from original data
+        sparse_data = sparse_data[~sparse_data['unix_min'].isin(non_empty_bins_dict[bin_to_remove])]
+        # Update the dictionary
+        bins_dict = {b: [x for x in sparse_data.unix_min if b <= x < b+bin_len] for b in bins}
+        non_empty_bins_dict = {k: v for k, v in bins_dict.items() if len(v) > 0}
+    print(f"New temporal occupancy is {tempOcp(sparse_data, bin_len)}.")
+    return sparse_data.reset_index(drop=True), sparse_data.index
