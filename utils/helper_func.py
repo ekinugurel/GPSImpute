@@ -39,6 +39,23 @@ def haversine(lat1, long1, lat2, long2):
     m = R * c * 1000
     return m
 
+def haversine_np(lon1, lat1, lon2, lat2):
+    # Convert latitude and longitude to radians
+    lon1 = np.radians(lon1)
+    lat1 = np.radians(lat1)
+    lon2 = np.radians(lon2)
+    lat2 = np.radians(lat2)
+
+    # Calculate the difference between latitudes and longitudes
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    # Apply the haversine formula
+    a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+    c = 2 * np.arcsin(np.sqrt(a))
+    r = 6371 # Radius of earth in kilometers
+    return c * r # Distance in kilometers
+
 def geodesic(lat1, lon1, lat2, lon2):
     """
     geodesic distance; in meters
@@ -81,37 +98,33 @@ def newCoordsAlt(lat1, lon1, d, brng, R = 6378.1):
     lon2 = math.degrees(lon2)
     return lat2, lon2
 
-def addDist(data, type=haversine):
+def addDist(data, type=haversine_np):
     """
-    Add distance column to a dataframe with latitudes and longitudes. type specifies whether to use the Haversine distance (default) or the geodesic distance.
+    Add distance column to a dataframe with latitudes and longitudes. Type specifies whether to use the Haversine distance (default) or the geodesic distance.
     """
-    if type == haversine:
-        cnt = 1
-        dist = list()
-        for i, j in zip(data['orig_lat'], data['orig_long']):
-            dist.append(haversine(i, j, data['orig_lat'][cnt], data['orig_long'][cnt]))
-            cnt += 1
-            if cnt == len(data):
-                dist.insert(0, 0)
-                break
+    print("Adding distance column to dataframe...")
+    if type == haversine_np:
+        lat1, lon1 = data['orig_lat'], data['orig_long']
+        lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
+        dist = type(lat1, lon1, lat2, lon2).fillna(0)
         data['dist'] = dist
     elif type == geodesic:
-        cnt = 1
-        dist = list()
-        for i, j in zip(data['orig_lat'], data['orig_long']):
-            dist.append(geodesic(i, j, data['orig_lat'][cnt], data['orig_long'][cnt]))
-            cnt += 1
-            if cnt == len(data):
-                dist.insert(0, 0)
-                break
+        lat1, lon1 = data['orig_lat'], data['orig_long']
+        lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
+        dist = type((lat1, lon1), (lat2, lon2)).miles.fillna(0)
         data['dist'] = dist
         
 def addVel(data):
-    dt = list(np.diff(data['unix_start_t']))
-    dt.insert(0, 0)
-    if 'dist' in list(data.columns):
-        data['vel'] = data['dist'] / dt
-        data['vel'][0] = 0
+    print("Adding velocity column to dataframe...")
+    if 'dist' in longitudinal.data.columns:
+        lat1, lon1 = longitudinal.data['orig_lat'], longitudinal.data['orig_long']
+        lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
+        dist = longitudinal.data['dist'].fillna(0)
+        time_diff = (longitudinal.data['unix_min'] - longitudinal.data['unix_min'].shift(1)).fillna(0)
+        vel = dist / time_diff
+        vel.iloc[0] = 0
+        vel.replace([np.inf, -np.inf], np.nan, inplace=True) # Replace infinite values with NaN
+        longitudinal.data['vel'] = vel
     else:
         print("Please run addDist method to calculate distances between points first.")
 
