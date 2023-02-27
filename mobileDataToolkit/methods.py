@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt, cm
 import utils.helper_func as helper_func
 import pandas as pd
 import torch
+from scipy.spatial.distance import cdist
 
 def mobVisualize(data, axes=None, **kwargs):
     """
@@ -92,6 +93,23 @@ def homeLoc(data, m_threshold = 50):
     data['home'] = home
 
     return home_lat, home_long
+
+    def homeLocv2(data, m_threshold = 50):
+        # Convert latitudes and longitudes to radians
+        orig_lat_rad = np.radians(data['orig_lat'])
+        orig_long_rad = np.radians(data['orig_long'])
+
+        # Compute home location coordinates
+        home_lat_rad = np.radians(data[(data['Hour'] <= 6) | (data['Hour'] >= 22)]['orig_lat'].mode().item())
+        home_long_rad = np.radians(data[(data['Hour'] <= 6) | (data['Hour'] >= 22)]['orig_long'].mode().item())
+
+        # Calculate distance between each coordinate and the home location
+        dist = cdist([(home_lat_rad, home_long_rad)], np.column_stack((orig_lat_rad, orig_long_rad)))
+        in_bounds = (dist <= m_threshold).flatten().astype(int)
+
+        data['home'] = in_bounds
+
+        return np.degrees(home_lat_rad), np.degrees(home_long_rad)
 
 def LI(X_train, X_test, y_train, y_test):
     preds_lat = []
