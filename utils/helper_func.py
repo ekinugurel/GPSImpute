@@ -116,15 +116,15 @@ def addDist(data, type=haversine_np):
         
 def addVel(data):
     print("Adding velocity column to dataframe...")
-    if 'dist' in longitudinal.data.columns:
-        lat1, lon1 = longitudinal.data['orig_lat'], longitudinal.data['orig_long']
+    if 'dist' in data.columns:
+        lat1, lon1 = data['orig_lat'], data['orig_long']
         lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
-        dist = longitudinal.data['dist'].fillna(0)
-        time_diff = (longitudinal.data['unix_min'] - longitudinal.data['unix_min'].shift(1)).fillna(0)
+        dist = data['dist'].fillna(0)
+        time_diff = (data['unix_min'] - data['unix_min'].shift(1)).fillna(0)
         vel = dist / time_diff
         vel.iloc[0] = 0
         vel.replace([np.inf, -np.inf], np.nan, inplace=True) # Replace infinite values with NaN
-        longitudinal.data['vel'] = vel
+        data['vel'] = vel
     else:
         print("Please run addDist method to calculate distances between points first.")
 
