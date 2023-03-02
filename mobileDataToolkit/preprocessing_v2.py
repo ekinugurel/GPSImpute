@@ -130,7 +130,7 @@ class dp_MultiTrip():
         self.data['norm_lat'] = [np.array(((i - mean_lat) / stdev_lat), dtype=np.float32) for i in self.data['orig_lat']]
         self.data['norm_long'] = [np.array(((i - mean_long) / stdev_long), dtype=np.float32) for i in self.data['orig_long']]
         
-        self.data['unix_min'] = ( (self.data['unix_start_t'] - min(self.data['unix_start_t'])) / 60 ).astype(int) #
+        # self.data['unix_min'] = ( (self.data['unix_start_t'] - min(self.data['unix_start_t'])) / 60 ).astype(int) #
         self.data['SaM'] = (self.data['datetime'].dt.hour*3600)+(self.data['datetime'].dt.minute*60)+(self.data['datetime'].dt.second)
         #self.data['minute'] = self.data['datetime'].dt.hour * 60 + self.data['datetime'].dt.minute
         #self.data['15_mins'] = math.ceil(self.data['minute'] / 15)
