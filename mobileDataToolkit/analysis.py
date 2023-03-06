@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-def tempOcp(data, bin_len = 5):
+def tempOcp(data, unix_col = 'unix_min', bin_len = 5):
     """
     Calculates the temporal occupancy of a given mobile data sequence.
 
@@ -19,7 +19,8 @@ def tempOcp(data, bin_len = 5):
     Temporal occupancy metric.
 
     """
-    bins = np.arange(min(data['unix_min']), max(data['unix_min'])+1, bin_len )
+    unix_col = unix_col
+    bins = np.arange(min(data[unix_col]), max(data[unix_col])+1, bin_len )
     Nb = len(bins)
     obs = list()
     for i, j in enumerate(bins):
@@ -27,7 +28,7 @@ def tempOcp(data, bin_len = 5):
             break
         hi = list()
         for k in range(int(bins[i]), int(bins[i+1])):
-            condition = [k in data['unix_min'].values]
+            condition = [k in data[unix_col].values]
             hi.append(any(condition))
         if any(hi):
             obs.append(1)
