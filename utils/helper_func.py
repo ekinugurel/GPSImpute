@@ -1,13 +1,11 @@
-import holidays
 import numpy as np
-import matplotlib
+import matplotlib.pyplot as plt
 import pandas as pd
 import random
-from math import radians, cos, sin, asin, sqrt, pi
-
+from math import radians, cos, sin, asin, sqrt, pi, atan2, degrees
 
 def init():
-    matplotlib.pyplot.rcdefaults()
+    plt.rcdefaults()
     
 def plot_2d_func(func, n_rows=1, n_cols=1, title=None):
     grid_size = 100
@@ -16,9 +14,9 @@ def plot_2d_func(func, n_rows=1, n_cols=1, title=None):
     y = func(x_grid)
     fig = plt.figure(figsize=(n_cols * 6, n_rows * 6))
     ax = fig.add_subplot(n_rows, n_cols, 1, projection='3d')
-    ax.plot_surface(x_grid[:, 0].reshape(grid_size, grid_size), x_grid[:, 1].reshape(grid_size, grid_size),
-                    y.reshape(grid_size, grid_size),
-                    cmap=cm.jet, rstride=1, cstride=1)
+    #ax.plot_surface(x_grid[:, 0].reshape(grid_size, grid_size), x_grid[:, 1].reshape(grid_size, grid_size),
+    #                y.reshape(grid_size, grid_size),
+    #                cmap=cm.jet, rstride=1, cstride=1)
     if title is not None:
         ax.set_title(title)
     return fig
@@ -59,6 +57,17 @@ def haversine_np(lon1, lat1, lon2, lat2):
 def geodesic(lat1, lon1, lat2, lon2):
     """
     geodesic distance; in meters
+
+    Parameters
+    ----------
+    lat1 : float
+        Latitude of the first point.
+    lon1 : float
+        Longitude of the first point.
+    lat2 : float
+        Latitude of the second point.
+    lon2 : float
+        Longitude of the second point.
     """
     
     lat1 = radians(float(lat1))
@@ -74,6 +83,17 @@ def geodesic(lat1, lon1, lat2, lon2):
 def newCoords(lat, lon, dy, dx):
     """
     Calculates a new lat/lon from an old lat/lon + displacement in x and y.
+
+    Parameters
+    ----------
+    lat : float
+        Latitude of the first point.
+    lon : float
+        Longitude of the first point.
+    dy : float
+        Displacement in y.
+    dx : float
+        Displacement in x.
     """
     r = 6371
     new_lat  = lat  + (dy*0.001 / r) * (180 / pi)
@@ -83,44 +103,83 @@ def newCoords(lat, lon, dy, dx):
 def newCoordsAlt(lat1, lon1, d, brng, R = 6378.1):
     """
     Calculates a new lat/lon from an old lat/lon + distance and bearing
+
+    Parameters
+    ----------
+    lat1 : float
+        Latitude of the first point.
+    lon1 : float
+        Longitude of the first point.
+    d : float
+        Distance between the two points.
+    brng : float
+        Bearing between the two points.
+    R : float
+        Radius of the earth. Default is 6378.1 km.
     """
     d = d/1000 # convert distance to km
-    lat1 = math.radians(lat1)
-    lon1 = math.radians(lon1)
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
     
-    lat2 = math.asin( math.sin(lat1)*math.cos(d/R) +
-         math.cos(lat1)*math.sin(d/R)*math.cos(brng))
+    lat2 = asin( sin(lat1)*cos(d/R) +
+         cos(lat1)*sin(d/R)*cos(brng))
     
-    lon2 = lon1 + math.atan2(math.sin(brng)*math.sin(d/R)*math.cos(lat1),
-                 math.cos(d/R)-math.sin(lat1)*math.sin(lat2))
+    lon2 = lon1 + atan2(sin(brng)*sin(d/R)*cos(lat1),
+                 cos(d/R)-sin(lat1)*sin(lat2))
     
-    lat2 = math.degrees(lat2)
-    lon2 = math.degrees(lon2)
+    lat2 = degrees(lat2)
+    lon2 = degrees(lon2)
     return lat2, lon2
 
-def addDist(data, type=haversine_np):
+def addDist(data, type=haversine_np, lat='orig_lat', lon='orig_long'):
     """
-    Add distance column to a dataframe with latitudes and longitudes. Type specifies whether to use the Haversine distance (default) or the geodesic distance.
+    Add distance column to a dataframe with latitudes and longitudes. 
+    Type specifies whether to use the Haversine distance (default) or the geodesic distance.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        Dataframe with latitudes and longitudes.
+    type : function
+        Function to calculate distance. Default is haversine_np.
+    lat : string
+        Name of the column with latitudes. Default is 'orig_lat'.
+    lon : string
+        Name of the column with longitudes. Default is 'orig_long'.
     """
     print("Adding distance column to dataframe...")
     if type == haversine_np:
-        lat1, lon1 = data['orig_lat'], data['orig_long']
+        lat1, lon1 = data[lat], data[lon]
         lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
         dist = type(lat1, lon1, lat2, lon2).fillna(0)
         data['dist'] = dist
     elif type == geodesic:
-        lat1, lon1 = data['orig_lat'], data['orig_long']
+        lat1, lon1 = data[lat], data[lon]
         lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
-        dist = type((lat1, lon1), (lat2, lon2)).miles.fillna(0)
+        dist = type(lat1, lon1, lat2, lon2).miles.fillna(0)
         data['dist'] = dist
         
-def addVel(data):
+def addVel(data, unix='unix_min', lat='orig_lat', lon='orig_long'):
+    """
+    Add velocity column to a dataframe with latitudes and longitudes.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        Dataframe with latitudes and longitudes.
+    unix : string
+        Name of the column containing unix timestamps.
+    lat : string
+        Name of the column containing latitudes.
+    lon : string
+        Name of the column containing longitudes.
+    """
     print("Adding velocity column to dataframe...")
     if 'dist' in data.columns:
-        lat1, lon1 = data['orig_lat'], data['orig_long']
+        lat1, lon1 = data[lat], data[lon]
         lat2, lon2 = lat1.shift(-1), lon1.shift(-1)
         dist = data['dist'].fillna(0)
-        time_diff = (data['unix_min'] - data['unix_min'].shift(1)).fillna(0)
+        time_diff = (data[unix] - data[unix].shift(1)).fillna(0)
         vel = dist / time_diff
         vel.iloc[0] = 0
         vel.replace([np.inf, -np.inf], np.nan, inplace=True) # Replace infinite values with NaN
@@ -147,3 +206,51 @@ def GPR_id(seed = random.seed(10)):
     seed
     GPR_id = str(next(uniqueid()))
     return GPR_id
+
+def loc_based_filter(data, trip, m_threshold=200, lat='orig_lat', lon='orig_long', trip_ID='trip_ID'):
+    """
+    Filters out points that are not within a certain distance of the start and end points of a trip. 
+    Achieves this by creating a bounding box around the start and end points, and then filtering out 
+    points that are not within the bounding box.
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        Dataframe containing all points.
+    trip : pandas dataframe
+        Dataframe containing points for a single trip.
+    m_threshold : int
+        Distance in meters from start and end points to create bounding box.
+    lat : str
+        Name of the column containing the latitude.
+    lon : str
+        Name of the column containing the longitude.
+    trip_ID : str
+        Name of the column containing the trip ID.
+    """
+    # Get bounding box coordinates for trip
+    start_lat, start_long = trip[lat].iloc[0], trip[lon].iloc[0]
+    end_lat, end_long = trip[lat].iloc[-1], trip[lon].iloc[-1]
+
+    upper_lat_s, upper_long_s = newCoords(start_lat, start_long, m_threshold, 0)
+    right_lat_s, right_long_s = newCoords(start_lat, start_long, 0, m_threshold)
+    lower_lat_s, lower_long_s = newCoords(start_lat, start_long, -m_threshold, 0)
+    left_lat_s, left_long_s = newCoords(start_lat, start_long, 0, -m_threshold)
+
+    upper_lat_e, upper_long_e = newCoords(end_lat, end_long, m_threshold, 0)
+    right_lat_e, right_long_e = newCoords(end_lat, end_long, 0, m_threshold)
+    lower_lat_e, lower_long_e = newCoords(end_lat, end_long, -m_threshold, 0)
+    left_lat_e, left_long_e = newCoords(end_lat, end_long, 0, -m_threshold)
+
+    # Exclude trips that do not start and end within the bounding boxes; group by trip_ID
+    filtered_trips = data.groupby(trip_ID).filter(lambda x: 
+                (x[lat].iloc[0] <= upper_lat_s) & 
+                (x[lat].iloc[0] >= lower_lat_s) & 
+                (x[lon].iloc[0] <= right_long_s) & 
+                (x[lon].iloc[0] >= left_long_s) & 
+                (x[lat].iloc[-1] <= upper_lat_e) & 
+                (x[lat].iloc[-1] >= lower_lat_e) & 
+                (x[lon].iloc[-1] <= right_long_e) & 
+                (x[lon].iloc[-1] >= left_long_e))
+    
+    return filtered_trips

@@ -12,22 +12,32 @@ import utils.helper_func as helper_func
 us_holidays = holidays.US()
 
 class dp_MultiTrip():
+    # This class is for data preprocessing for multi-trip data
+    # It is used to preprocess the data for the multi-trip model
     def __init__(self, data=None, file_path=None, random_state=None):
+        '''
+        data: pandas dataframe
+        file_path: path to the csv file
+        random_state: random state for sampling
+        '''
         self.file_path = file_path
         self.random_state = random_state
         
         if file_path is not None:
-            self.read_data()
+            self.read_data(file_path)
         elif data is not None:
             self.data = data
 
-    def read_data(self):
-        self.data = pd.read_csv(self.file_path)
+    def read_data(self, file_path):
+        '''
+        read data from csv file
+        '''
+        self.data = pd.read_csv(file_path)
         return self.data
     
-    def add_DateTime(self):
+    def add_DateTime(self, unix_col='unix_start_t'):
         datetime = list()
-        for i in self.data['unix_start_t']:
+        for i in self.data[unix_col]:
             datetime.append(datetime.utcfromtimestamp(i).strftime('%Y-%m-%d %H:%M:%S'))
         self.data['datetime'] = datetime
         self.data['datetime'] = pd.to_datetime(self.data['datetime'])
@@ -188,11 +198,11 @@ class dp_MultiTrip():
         if len(self.data.UID.unique()) == 1:
             f.suptitle('User ID: ' + str(self.data.UID.unique().item()), fontsize = 10)
         
-        y1_ax.scatter(data['datetime'], data['norm_lat'], marker='.', c='blue')
+        y1_ax.scatter(data['datetime'], data['norm_lat'], c='blue')
         y1_ax.set_title('(Normalized) Latitude', fontsize = 10)
         y1_ax.set_xticks([])
         
-        y2_ax.scatter(data['datetime'], data['norm_long'], marker='.', c='blue')
+        y2_ax.scatter(data['datetime'], data['norm_long'], c='blue')
         y2_ax.set_title('(Normalized) Longitude', fontsize = 10)
         
         try:
@@ -242,7 +252,7 @@ class dp_MultiTrip():
         return self.home_lat, self.home_long
 
     
-    def Multi_Trip_TrainTestSplit(self, test_start_date, test_end_date, datetime = 'datetime', lat='orig_lat', 
+    def Multi_Trip_TrainTestSplit(self, test_start_date, test_end_date, training_index=set(), datetime = 'datetime', lat='orig_lat', 
                                   long='orig_long', output = 'coords', unix='unix_min', 
                                   inputstart = 'unix_min', inputend = "week_5"):    
         
@@ -257,34 +267,44 @@ class dp_MultiTrip():
         self.test_end_date = test_end_date
         
         self.X_train = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+            self.data[unix].isin(training_index)
             ]).astype(float))
         self.X_test = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]).astype(float))
         self.y_train_lat = torch.tensor(np.asarray(self.data[lat][
-            (self.data[datetime] < test_start_date) | (self.data[datetime] > test_end_date)
+            (self.data[datetime] < test_start_date) | (self.data[datetime] > test_end_date) |
+            self.data[unix].isin(training_index)
             ]).astype(float))
         self.y_test_lat = torch.tensor(np.asarray(self.data[lat][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]).astype(float))
         self.y_train_long = torch.tensor(np.asarray(self.data[long][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+            self.data[unix].isin(training_index)
             ]).astype(float))
         self.y_test_long = torch.tensor(np.asarray(self.data[long][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]).astype(float))
         self.glob_t_train = torch.tensor(np.asarray(self.data[unix][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+            self.data[unix].isin(training_index)
             ]).astype(float))
         self.glob_t_test = torch.tensor(np.asarray(self.data[unix][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]).astype(float))
         self.date_train = self.data[datetime][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+            self.data[unix].isin(training_index)
             ]
         self.date_test = self.data[datetime][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]
         #self.vel_train = torch.tensor(np.asarray(self.data['vel'][
         #    (self.data['datetime'] < self.test_start_date) | (self.data['datetime'] > self.test_end_date)
@@ -299,10 +319,12 @@ class dp_MultiTrip():
         #    (self.data['datetime'] >= self.test_start_date) & (self.data['datetime'] > self.test_end_date)
         #    ]).astype(np.float))
         self.prec_train = torch.tensor(np.asarray(self.data['orig_unc'][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+            self.data[unix].isin(training_index)
             ]).astype(float))
         self.prec_test = torch.tensor(np.asarray(self.data['orig_unc'][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] > self.test_end_date)
+            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] > self.test_end_date) &
+            ~self.data[unix].isin(training_index)
             ]).astype(float))
         
         if output == 'coords':
