@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import random
 from math import radians, cos, sin, asin, sqrt, pi, atan2, degrees
+import geopandas as gpd
+
 
 def init():
     plt.rcdefaults()
@@ -207,6 +209,9 @@ def GPR_id(seed = random.seed(10)):
     GPR_id = str(next(uniqueid()))
     return GPR_id
 
+def dec_floor(a, precision=1):
+    return np.true_divide(np.floor(a * 10**precision), 10**precision)
+
 def loc_based_filter(data, trip, m_threshold=200, lat='orig_lat', lon='orig_long', trip_ID='trip_ID'):
     """
     Filters out points that are not within a certain distance of the start and end points of a trip. 
@@ -254,3 +259,57 @@ def loc_based_filter(data, trip, m_threshold=200, lat='orig_lat', lon='orig_long
                 (x[lon].iloc[-1] >= left_long_e))
     
     return filtered_trips
+
+def trajectory_points_to_linestring(trajectory, speed_column="speed_kmph"):
+    """
+    A helper function to create a GeoDataFrame with LineString geometry based on the points of a given trajectory.
+    Also calculates the average and standard deviation of the speed of the trajectory.
+    
+    Parameters
+    ----------
+    
+    trajectory : mpd.Trajectory
+    
+        A MovingPandas Trajectory object which will be used for creating the GeoDataFrame with LineString geometry 
+        and some relevant trajectory-related attributes.
+        
+    speed_column : str
+    
+        A column containing the travel speed.
+    
+    """
+    # Parse the GeoDataFrame
+    df = trajectory.df
+    
+    # Remove observations that are very slow (< 1 kmph)
+    df = df.loc[df[speed_column] > 1].copy()
+    
+    # If there were only less than 3 observations return empty GeoDataFrame
+    # This will clean the data from trajectories 
+    if len(df) < 3:
+        return None
+    
+    # Sort the observations
+    df = df.sort_index()
+    
+    # What is the average speed of the route
+    avg_speed = df[speed_column].mean()
+    std_speed = df[speed_column].std()
+    
+    # Parse other useful values
+    vehicle_id = df["vehicle_id"].unique()[0]
+    route_id = df["route_id"].unique()[0]
+    direction_id = df["direction_id"].unique()[0]
+    start_time = df["timestamp"].head(1).values[0]
+    
+    # Create LineString geometry
+    geom = trajectory.to_linestring()
+    
+    # Store the relevant data
+    data = {"geometry": [geom], "route_id": route_id, 
+            "vehicle_id": vehicle_id, 
+            "direction_id": direction_id,
+            "avg_speed": avg_speed,
+            "std_speed": std_speed,
+           }
+    return gpd.GeoDataFrame(data, crs="epsg:4326")
