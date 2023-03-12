@@ -118,10 +118,10 @@ def LI(X_train, X_test, y_train, y_test):
         preds_lat.append(np.interp(j, X_train, y_train[:,0]))
         preds_long.append(np.interp(j, X_train, y_train[:,1]))
 
-    rmse_lat = mean_squared_error(preds_lat, y_test[:,0], squared=False)
-    rmse_long = mean_squared_error(preds_long, y_test[:,1], squared=False)
-    rmse = math.sqrt(rmse_lat**2 + rmse_long**2)
-    return rmse
+    preds_lat = np.array(preds_lat)
+    preds_long = np.array(preds_long)
+
+    return metrics.average_eval(np.array(y_test[:,0]), np.array(y_test[:,1]), preds_lat, preds_long)
 
 def Multi_Trip_TrainTestSplit(data, test_start_date, test_end_date, output = 'coords'):    
 

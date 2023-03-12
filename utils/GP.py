@@ -162,7 +162,7 @@ def training(model, X_train, y_train, n_epochs=200, lr=0.3, loss_threshold=0.000
 
     # "Loss" for GPs - the marginal log likelihood
     mll = gpytorch.mlls.ExactMarginalLogLikelihood(model.likelihood, model)
-    
+    model = model.double()
     counter = 0
     ls = list()
     with tqdm.trange(n_epochs, disable=not verbose) as bar:
@@ -170,7 +170,7 @@ def training(model, X_train, y_train, n_epochs=200, lr=0.3, loss_threshold=0.000
     
             optimizer.zero_grad()
             
-            output = model(X_train)
+            output = model(X_train.double())
             loss = -mll(output, y_train)
             if hasattr(model.covar_module.data_covar_module, 'kernels'):
                 with torch.no_grad():

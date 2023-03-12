@@ -265,68 +265,142 @@ class dp_MultiTrip():
         
         self.test_start_date = test_start_date
         self.test_end_date = test_end_date
-        
-        self.X_train = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
-            self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.X_test = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.y_train_lat = torch.tensor(np.asarray(self.data[lat][
-            (self.data[datetime] < test_start_date) | (self.data[datetime] > test_end_date) |
-            self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.y_test_lat = torch.tensor(np.asarray(self.data[lat][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.y_train_long = torch.tensor(np.asarray(self.data[long][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
-            self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.y_test_long = torch.tensor(np.asarray(self.data[long][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.glob_t_train = torch.tensor(np.asarray(self.data[unix][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
-            self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.glob_t_test = torch.tensor(np.asarray(self.data[unix][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.date_train = self.data[datetime][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
-            self.data[unix].isin(training_index)
-            ]
-        self.date_test = self.data[datetime][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]
-        #self.vel_train = torch.tensor(np.asarray(self.data['vel'][
-        #    (self.data['datetime'] < self.test_start_date) | (self.data['datetime'] > self.test_end_date)
-        #    ]).astype(np.float))
-        #self.vel_test = torch.tensor(np.asarray(self.data['vel'][
-        #    (self.data['datetime'] >= self.test_start_date) & (self.data['datetime'] > self.test_end_date)
-        #    ]).astype(np.float))
-        #self.angle_train = torch.tensor(np.asarray(self.data['angle'][
-        #    (self.data['datetime'] < self.test_start_date) | (self.data['datetime'] > self.test_end_date)
-        #    ]).astype(np.float))
-        #self.angle_test = torch.tensor(np.asarray(self.data['angle'][
-        #    (self.data['datetime'] >= self.test_start_date) & (self.data['datetime'] > self.test_end_date)
-        #    ]).astype(np.float))
-        self.prec_train = torch.tensor(np.asarray(self.data['orig_unc'][
-            (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
-            self.data[unix].isin(training_index)
-            ]).astype(float))
-        self.prec_test = torch.tensor(np.asarray(self.data['orig_unc'][
-            (self.data[datetime] >= self.test_start_date) & (self.data[datetime] > self.test_end_date) &
-            ~self.data[unix].isin(training_index)
-            ]).astype(float))
-        
+
+        if (training_index is not None) & (test_start_date is not None) & (test_end_date is not None):
+            self.X_train = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.X_test = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_train_lat = torch.tensor(np.asarray(self.data[lat][
+                (self.data[datetime] < test_start_date) | (self.data[datetime] > test_end_date) |
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_test_lat = torch.tensor(np.asarray(self.data[lat][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_train_long = torch.tensor(np.asarray(self.data[long][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_test_long = torch.tensor(np.asarray(self.data[long][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.glob_t_train = torch.tensor(np.asarray(self.data[unix][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.glob_t_test = torch.tensor(np.asarray(self.data[unix][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.date_train = self.data[datetime][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+                self.data[unix].isin(training_index)
+                ]
+            self.date_test = self.data[datetime][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]
+            self.prec_train = torch.tensor(np.asarray(self.data['orig_unc'][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date) |
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.prec_test = torch.tensor(np.asarray(self.data['orig_unc'][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] > self.test_end_date) &
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+        elif training_index is None:
+            self.X_train = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+                ]).astype(float))
+            self.X_test = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+                ]).astype(float))
+            self.y_train_lat = torch.tensor(np.asarray(self.data[lat][
+                (self.data[datetime] < test_start_date) | (self.data[datetime] > test_end_date)
+                ]).astype(float))
+            self.y_test_lat = torch.tensor(np.asarray(self.data[lat][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+                ]).astype(float))
+            self.y_train_long = torch.tensor(np.asarray(self.data[long][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+                ]).astype(float))
+            self.y_test_long = torch.tensor(np.asarray(self.data[long][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+                ]).astype(float))
+            self.glob_t_train = torch.tensor(np.asarray(self.data[unix][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+                ]).astype(float))
+            self.glob_t_test = torch.tensor(np.asarray(self.data[unix][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+                ]).astype(float))
+            self.date_train = self.data[datetime][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+                ]
+            self.date_test = self.data[datetime][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] <= self.test_end_date)
+                ]
+            #self.vel_train = torch.tensor(np.asarray(self.data['vel'][
+            #    (self.data['datetime'] < self.test_start_date) | (self.data['datetime'] > self.test_end_date)
+            #    ]).astype(np.float))
+            #self.vel_test = torch.tensor(np.asarray(self.data['vel'][
+            #    (self.data['datetime'] >= self.test_start_date) & (self.data['datetime'] > self.test_end_date)
+            #    ]).astype(np.float))
+            #self.angle_train = torch.tensor(np.asarray(self.data['angle'][
+            #    (self.data['datetime'] < self.test_start_date) | (self.data['datetime'] > self.test_end_date)
+            #    ]).astype(np.float))
+            #self.angle_test = torch.tensor(np.asarray(self.data['angle'][
+            #    (self.data['datetime'] >= self.test_start_date) & (self.data['datetime'] > self.test_end_date)
+            #    ]).astype(np.float))
+            self.prec_train = torch.tensor(np.asarray(self.data['orig_unc'][
+                (self.data[datetime] < self.test_start_date) | (self.data[datetime] > self.test_end_date)
+                ]).astype(float))
+            self.prec_test = torch.tensor(np.asarray(self.data['orig_unc'][
+                (self.data[datetime] >= self.test_start_date) & (self.data[datetime] > self.test_end_date)
+                ]).astype(float))
+        else:
+            self.X_train = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.X_test = torch.tensor(np.asarray(self.data.iloc[:, time_start_loc:time_end_loc][
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_train_lat = torch.tensor(np.asarray(self.data[lat][
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_test_lat = torch.tensor(np.asarray(self.data[lat][
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_train_long = torch.tensor(np.asarray(self.data[long][
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.y_test_long = torch.tensor(np.asarray(self.data[long][
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.glob_t_train = torch.tensor(np.asarray(self.data[unix][
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.glob_t_test = torch.tensor(np.asarray(self.data[unix][
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.date_train = self.data[datetime][
+                self.data[unix].isin(training_index)
+                ]
+            self.date_test = self.data[datetime][
+                ~self.data[unix].isin(training_index)
+                ]
+            self.prec_train = torch.tensor(np.asarray(self.data['orig_unc'][
+                self.data[unix].isin(training_index)
+                ]).astype(float))
+            self.prec_test = torch.tensor(np.asarray(self.data['orig_unc'][
+                ~self.data[unix].isin(training_index)
+                ]).astype(float))
         if output == 'coords':
             self.y_train = torch.stack(
                 [
