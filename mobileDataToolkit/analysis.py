@@ -55,6 +55,8 @@ def simulate_gaps(data, target_temp_ocp, user_id=None, unix_col = 'unix_min', bi
         bin_to_remove = np.random.choice(list(non_empty_bins_dict.keys()))
         # Remove all values in this bin from original data
         sparse_data = sparse_data[~sparse_data[unix_col].isin(non_empty_bins_dict[bin_to_remove])]
+        # Remove duplicates in the unix column
+        sparse_data = sparse_data.drop_duplicates(subset=[unix_col])
         # Update the dictionary
         bins_dict = {b: [x for x in sparse_data[unix_col] if b <= x < b+bin_len] for b in bins}
         non_empty_bins_dict = {k: v for k, v in bins_dict.items() if len(v) > 0}
