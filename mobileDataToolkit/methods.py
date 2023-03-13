@@ -7,6 +7,7 @@ import utils.helper_func as helper_func
 import pandas as pd
 import torch
 from scipy.spatial.distance import cdist
+import mobileDataToolkit.metrics as metrics
 
 def mobVisualize(data, axes=None, **kwargs):
     """
@@ -121,7 +122,7 @@ def LI(X_train, X_test, y_train, y_test):
     preds_lat = np.array(preds_lat)
     preds_long = np.array(preds_long)
 
-    return metrics.average_eval(np.array(y_test[:,0]), np.array(y_test[:,1]), preds_lat, preds_long)
+    return preds_lat, preds_long
 
 def Multi_Trip_TrainTestSplit(data, test_start_date, test_end_date, output = 'coords'):    
 

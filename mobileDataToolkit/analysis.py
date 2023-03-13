@@ -58,5 +58,6 @@ def simulate_gaps(data, target_temp_ocp, user_id=None, unix_col = 'unix_min', bi
         # Update the dictionary
         bins_dict = {b: [x for x in sparse_data[unix_col] if b <= x < b+bin_len] for b in bins}
         non_empty_bins_dict = {k: v for k, v in bins_dict.items() if len(v) > 0}
-    print(f"New temporal occupancy is {tempOcp(data = sparse_data, unix_col = unix_col, bin_len = bin_len)}.")
-    return sparse_data.reset_index(drop=True), sparse_data[unix_col]
+    new_ocp = tempOcp(data = sparse_data, unix_col = unix_col, bin_len = bin_len)
+    print(f"New temporal occupancy is {new_ocp}.")
+    return sparse_data.reset_index(drop=True), sparse_data[unix_col], new_ocp

@@ -117,7 +117,8 @@ class dp_MultiTrip():
         temp_ocp = float(len(obs) / len(bins))
         return temp_ocp
     
-    def Multi_Trip_Preprocess(self, datetime='datetime', lat='orig_lat', long='orig_long', monthly_dummies=False):
+    def Multi_Trip_Preprocess(self, datetime='datetime', lat='orig_lat', long='orig_long', 
+    monthly_dummies=False, weekly_dummies=False):
         #self.data = self.data[self.data.UID == self.UID]
         self.data[datetime] = pd.to_datetime(self.data[datetime])
 
@@ -173,14 +174,13 @@ class dp_MultiTrip():
             days_ind.append("day_" + str(i))
             
         self.data[days_ind] = days
-
-        weeks = pd.get_dummies(self.data['WoM']).to_numpy()
-        self.weeks_col = pd.get_dummies(self.data['WoM']).columns
-        week_ind = []
-        for i in self.weeks_col:
-            week_ind.append("week_" + str(i))
-        
-        self.data[week_ind] = weeks
+        if weekly_dummies == True:
+            weeks = pd.get_dummies(self.data['WoM']).to_numpy()
+            self.weeks_col = pd.get_dummies(self.data['WoM']).columns
+            week_ind = []
+            for i in self.weeks_col:
+                week_ind.append("week_" + str(i))
+            self.data[week_ind] = weeks
 
         if monthly_dummies == True:    
             months = pd.get_dummies(self.data['Month']).to_numpy()

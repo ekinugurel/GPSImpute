@@ -4,6 +4,7 @@ import pandas as pd
 import random
 from math import radians, cos, sin, asin, sqrt, pi, atan2, degrees
 import geopandas as gpd
+import skmob
 
 
 def init():
@@ -188,6 +189,84 @@ def addVel(data, unix='unix_min', lat='orig_lat', lon='orig_long'):
         data['vel'] = vel
     else:
         print("Please run addDist method to calculate distances between points first.")
+
+def skmob_metric_calcs(df, method = 'GP', lat='lat', long = 'lng', datetime = 'datetime'):
+
+     # Make into TrajDataFrame
+    tdf = skmob.TrajDataFrame(df, latitude=lat, longitude=long, datetime=datetime)
+
+    # Calculate scikit-mobility metrics, name parameters using method name
+    no_loc_pred = skmob.measures.individual._number_of_locations_individual(tdf)
+    rg_pred = skmob.measures.individual._radius_of_gyration_individual(tdf).squeeze()
+    k_rg_pred = skmob.measures.individual._k_radius_of_gyration_individual(tdf).squeeze()
+    jumps_pred = skmob.measures.individual._jump_lengths_individual(tdf).squeeze()
+    spat_burst_pred = burstiness(jumps_pred)
+    loc_freq_pred = skmob.measures.individual._location_frequency_individual(tdf, normalize=True) # matrix
+    rand_entr_pred = skmob.measures.individual._random_entropy_individual(tdf).squeeze()
+    real_entr_pred = skmob.measures.individual._real_entropy_individual(tdf).squeeze()
+    recency_pred = skmob.measures.individual._recency_rank_individual(tdf).squeeze()  # matrix
+    freq_rank_pred = skmob.measures.individual._frequency_rank_individual(tdf).squeeze() # matrix
+    uncorr_entr_pred = skmob.measures.individual._uncorrelated_entropy_individual(tdf).squeeze()
+    max_dist_pred = skmob.measures.individual._maximum_distance_individual(tdf).squeeze()
+    dist_straight_pred = skmob.measures.individual._distance_straight_line_individual(tdf).squeeze()
+    waiting_time_pred = skmob.measures.individual._waiting_times_individual(tdf).squeeze() # array
+    home_loc_pred = skmob.measures.individual._home_location_individual(tdf) # tuple
+    max_dist_home_pred = skmob.measures.individual._max_distance_from_home_individual(tdf).squeeze()
+    mob_network_pred = skmob.measures.individual._individual_mobility_network_individual(tdf) # big matrix
+    
+    setattr(tdf, f"no_loc_{method.lower()}_pred", no_loc_pred)
+    setattr(tdf, f"rg_{method.lower()}_pred", rg_pred)
+    setattr(tdf, f"k_rg_{method.lower()}_pred", k_rg_pred)
+    setattr(tdf, f"jumps_{method.lower()}_pred", jumps_pred)
+    setattr(tdf, f"spat_burst_{method.lower()}_pred", spat_burst_pred)
+    setattr(tdf, f"loc_freq_{method.lower()}_pred", loc_freq_pred)
+    setattr(tdf, f"rand_entr_{method.lower()}_pred", rand_entr_pred)
+    setattr(tdf, f"real_entr_{method.lower()}_pred", real_entr_pred)
+    setattr(tdf, f"recency_{method.lower()}_pred", recency_pred)
+    setattr(tdf, f"freq_rank_{method.lower()}_pred", freq_rank_pred)
+    setattr(tdf, f"uncorr_entr_{method.lower()}_pred", uncorr_entr_pred)
+    setattr(tdf, f"max_dist_{method.lower()}_pred", max_dist_pred)
+    setattr(tdf, f"dist_straight_{method.lower()}_pred", dist_straight_pred)
+    setattr(tdf, f"waiting_time_{method.lower()}_pred", waiting_time_pred)
+    setattr(tdf, f"home_loc_{method.lower()}_pred", home_loc_pred)
+    setattr(tdf, f"max_dist_home_{method.lower()}_pred", max_dist_home_pred)
+    setattr(tdf, f"mob_network_{method.lower()}_pred", mob_network_pred)
+
+    return tdf
+
+def preds_to_full_df(preds_lat, preds_long, test_df, train_df, 
+                     unix='unix_min', datetime='date', lat='lat', long='long'):
+    '''
+    Function to merge the predictions with the original training set to create a full dataframe.
+    
+    '''
+    # Create dataframe with GP predictions
+    orig_preds_df = pd.DataFrame(test_df[unix], columns=[unix])
+    orig_preds_df[datetime] = test_df[datetime]
+    orig_preds_df[lat] = preds_lat
+    orig_preds_df[long] = preds_long
+
+    tdf = pd.concat([train_df, orig_preds_df], axis=0)
+
+    # Sort by unix time
+    tdf.sort_values(by=unix, inplace=True)
+
+    # Rename datetime column to datetime
+    tdf.rename(columns={datetime: 'datetime'}, inplace=True)
+
+    return tdf
+
+def matrix_acc(metric_pred, metric_test, metric_name, tolerance=1e-04):
+    try:
+        metric_tot = pd.concat([metric_pred.reset_index()[:len(metric_test)], metric_test.reset_index(drop=True)[:len(metric_pred)]], axis=1)
+        metric_tot.columns = ['index', 'pred_lat', 'pred_lng', f'pred_{metric_name.lower()}', 
+        'test_lat', 'test_lng', f'test_{metric_name.lower()}']
+        metric_match = metric_tot.apply(lambda x: np.all(np.isclose([x.test_lat, x.test_lng, x[f'test_{metric_name.lower()}']], 
+        [x.pred_lat, x.pred_lng, x[f'pred_{metric_name.lower()}']], atol=tolerance)), axis=1)
+        metric_perc = np.count_nonzero(metric_match) / len(metric_match)
+    except ValueError:
+        metric_perc = 0
+    return metric_perc
 
 def burstiness(series):
     avg=series.mean()
