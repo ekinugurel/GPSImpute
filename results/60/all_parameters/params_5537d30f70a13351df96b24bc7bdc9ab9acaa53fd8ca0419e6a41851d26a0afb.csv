@@ -1,0 +1,34 @@
+,value
+max_speed_kmh,400.0
+spatial_radius_km,0.3
+bin_len,60.0
+tdf.shape[0],5627.0
+f_tdf.shape[0],5599.0
+fc_tdf.shape[0],1929.0
+fcu_tdf.shape[0],1929.0
+curr_ocp,0.2135523613963039
+target_ocp,0.1
+new_ocp,0.09917355371900827
+n_train,734.0
+n_test,803.0
+n_dims,13.0
+mean_lat,48.16497786266165
+mean_long,-122.18739485647912
+std_lat,0.10928607300088655
+std_long,0.0545145473502031
+init_lengthscale,19.80081855388813
+init_period_len_1,480.0
+init_period_len_2,1440.0
+log_ll,221.97539605630809
+m,43.0
+bic,-160.214903882192
+gp_runtime,60.85770225524902
+ses_smoothing_level,0.1
+holt_smoothing_level_lat,0.2
+holt_smoothing_slope_lat,0.045
+holt_smoothing_level_lon,0.1
+holt_smoothing_slope_lon,0.0307
+es_seasonal_periods,24.0
+arima_order,"(1, 1, 0)"
+sarimax_order,"(1, 0, 0)"
+sarimax_seasonal_order,"(1, 1, 1, 24)"
