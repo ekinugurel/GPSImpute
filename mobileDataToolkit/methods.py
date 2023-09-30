@@ -8,6 +8,9 @@ import pandas as pd
 import torch
 from scipy.spatial.distance import cdist
 import mobileDataToolkit.metrics as metrics
+import statsmodels.api as sm
+from statsmodels.tsa.arima.model import ARIMA
+from itertools import product
 
 def mobVisualize(data, axes=None, **kwargs):
     """
@@ -223,3 +226,41 @@ def Multi_Trip_TrainTestSplit(data, test_start_date, test_end_date, output = 'co
     test = test.sort_values(by=['unix_start_t_min'])
     
     return train, test, X_train, y_train, X_test, y_test, date_train, date_test
+
+def find_best_arima_order(data, p_values, d_values, q_values):
+    best_aic = float("inf")
+    best_order = None
+
+    for p, d, q in product(p_values, d_values, q_values):
+        try:
+            model = ARIMA(data, order=(p, d, q))
+            results = model.fit()
+
+            if results.aic < best_aic:
+                best_aic = results.aic
+                best_order = (p, d, q)
+
+        except Exception as e:
+            continue
+
+    return best_order, best_aic
+
+def find_best_SARIMAX_order(data, p_values, d_values, q_values, P_values, D_values, Q_values, m_values):
+    best_aic = float("inf")
+    best_order = None
+    best_seasonal_order = None
+
+    for p, d, q, P, D, Q, m in product(p_values, d_values, q_values, P_values, D_values, Q_values, m_values):
+        try:
+            model = sm.tsa.statespace.SARIMAX(data, order=(p, d, q), seasonal_order=(P, D, Q, m))
+            results = model.fit(disp=False)
+
+            if results.aic < best_aic:
+                best_aic = results.aic
+                best_order = (p, d, q)
+                best_seasonal_order = (P, D, Q, m)
+
+        except Exception as e:
+            continue
+
+    return best_order, best_seasonal_order, best_aic
