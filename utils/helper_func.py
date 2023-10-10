@@ -46,9 +46,13 @@ def plotTempOcpvsError(error, ocp, fitline=True, title=None, xlabel='Temporal oc
         x = np.linspace(min(ocp), max(ocp), 100)
         plt.plot(x, m*x + b, label='MTGP')
     if title is not None:
-        plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+        plt.title(title, fontsize=20)
+    plt.xlabel(xlabel, fontsize=16)
+    plt.ylabel(ylabel, fontsize=16)
+    # X-tick font size
+    plt.xticks(fontsize=14)
+    # Y-tick font size
+    plt.yticks(fontsize=14)
     plt.show()
 
 def haversine(lat1, long1, lat2, long2):
