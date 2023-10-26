@@ -1,0 +1,42 @@
+,value
+max_speed_kmh,400.0
+spatial_radius_km,0.3
+bin_len,60.0
+tdf.shape[0],9553.0
+f_tdf.shape[0],9429.0
+fc_tdf.shape[0],1069.0
+fcu_tdf.shape[0],1066.0
+curr_ocp,0.24373259052924792
+target_ocp,0.1
+new_ocp,0.09979064898813678
+n_train,442.0
+n_test,532.0
+n_dims,13.0
+mean_lat,47.596384416739866
+mean_long,-122.31169476292334
+std_lat,0.08321767968224027
+std_long,0.048891716566660234
+init_lengthscale,97.41609977324264
+init_period_len_1,1440.0
+init_period_len_2,10080.0
+log_ll,-536.1233982961783
+m,23.0
+bic,1212.3469238801435
+gp_runtime,2.0250091552734375
+ses_smoothing_level,0.9999999850988388
+holt_smoothing_level_lat,0.9866587130994386
+holt_smoothing_slope_lat,0.06708768884616145
+holt_smoothing_level_lon,0.9999999850988388
+holt_smoothing_slope_lon,0.0
+holt_damping_slope_lat,0.8
+holt_damping_slope_lon,0.9885037101091896
+es_seasonal_periods,24.0
+es_smoothing_level_lat,0.9609423286565141
+es_smoothing_slope_lat,0.08526032353305789
+es_smoothing_level_lon,0.9999999850988388
+es_smoothing_slope_lon,0.2314900376504561
+es_damping_slope_lat,0.8
+es_damping_slope_lon,0.8
+arima_order,"(2, 0, 1)"
+sarimax_order,"(2, 0, 1)"
+sarimax_seasonal_order,"(0, 0, 0, 24)"
