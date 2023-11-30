@@ -1,3 +1,8 @@
+results/sin_cos_exp
+results/holidays
+tests/sine_cosine.ipynb
+tests/holidays.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
