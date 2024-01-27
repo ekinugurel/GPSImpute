@@ -35,9 +35,10 @@ We initialize binary variables (i.e., one-of-k encoded categorical variables) wi
 ![Example imputation](img/ex1.png)
 
 ## Results
-![1 week of missingness - imputation accuracy](img/1week_res.png)
-![1 hour of missingness - imputation accuracy](img/1hour_res.png)
-![Relationship between sparsity and the derived mobility metrics](img/tempOcp_and_metrics.png)
+![1 week of missingness - Relationship between sparsity and the derived mobility metrics](img/1week.png)
+![1 day of missingness - Relationship between sparsity and the derived mobility metrics](img/1day.png)
+![6 hours of missingness - Relationship between sparsity and the derived mobility metrics](img/6hours.png)
+![5 minutes of missingness - Relationship between sparsity and the derived mobility metrics](img/5mins.png)
 
 ## Licensing
 See the [LICENSE](LICENSE) file for licensing information as it pertains to files in this repository.
