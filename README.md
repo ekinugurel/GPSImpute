@@ -1,6 +1,8 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ekinugurel/GPSImpute/master)
-
-## About
+# Correcting missingness in passively-generated mobile data with Multi-Task Gaussian Processes
+### Ekin Uğurel, Xiangyang Guan, Yanchao Wang, Qi Ryan Wang, Shuai Huang, Cynthia Chen
+### Read full paper <a href="https://www.sciencedirect.com/science/article/pii/S0968090X24000445?dgcid=author">here</a>
+ 
 GPSImpute is a library to impute missing values for mobile datasets, largely in the context of human mobility. It uses multi-task Gaussian processes to infer missing GPS traces. In practice, for short gaps in continuous coverage, our method is comparable to existing smoothing techniques. For long gaps, however, our method cleverly takes advantage of an individual's longitudinal data to predict missing segments.
 
 ![End-to-end Workflow.](img/endtoendworkflow_2.png)
@@ -45,3 +47,18 @@ See the [LICENSE](LICENSE) file for licensing information as it pertains to file
 
 ## Contact
 Ekin Uğurel (ugurel [at] uw.edu)
+
+## Citation
+```
+@article{UGUREL2024104523,
+title = {Correcting missingness in passively-generated mobile data with Multi-Task Gaussian Processes},
+journal = {Transportation Research Part C: Emerging Technologies},
+volume = {161},
+pages = {104523},
+year = {2024},
+issn = {0968-090X},
+doi = {https://doi.org/10.1016/j.trc.2024.104523},
+url = {https://www.sciencedirect.com/science/article/pii/S0968090X24000445},
+author = {Ekin Uğurel and Xiangyang Guan and Yanchao Wang and Shuai Huang and Qi Wang and Cynthia Chen},
+keywords = {Mobile data, Human mobility, Travel behavior, Gaussian processes, Multi-task learning, Missing data}
+```
